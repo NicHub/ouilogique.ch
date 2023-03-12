@@ -2,15 +2,166 @@
 <html lang="fr">
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>RADIOS</title>
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
+    <style>
+        body {
+            background-color: rgb(30, 30, 30);
+            color: burlywood;
+            font-family: monospace;
+            font-size: 150%;
+            text-align: center;
+        }
+
+        main {
+            width: 80%;
+            margin: 10px auto 100px;
+            display: block;
+        }
+
+        :link {
+            color: inherit;
+        }
+
+        :visited {
+            color: inherit;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: bisque;
+        }
+
+        h2 {
+            text-transform: lowercase;
+            font-variant-caps: small-caps;
+            margin: 50px 0 0
+        }
+
+        figure {
+            margin: 20px 0;
+        }
+
+        figcaption {
+
+            padding: 0 0 5px 0;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
     <script>
         "use strict";
+
+        function main() {
+            let streams = [
+                {
+                    "country_name": "France",
+                    "stations": [
+                        {
+                            "station_name": "France Inter",
+                            "stream_urls": [
+                                "http://direct.franceinter.fr/live/franceinter-midfi.mp3",
+                                "http://direct.franceinter.fr/live/franceinter-midfi.mp3"
+                            ]
+                        }
+                        , {
+                            "station_name": "Europe 1",
+                            "stream_urls": [
+                                "http://stream.europe1.fr/europe1.aac",
+                                "http://stream.europe1.fr/europe1.mp3"
+                            ]
+                        }
+                        , {
+                            "station_name": "France Culture",
+                            "stream_urls": [
+                                "http://direct.franceculture.fr/live/franceculture-hifi.aac",
+                                "http://direct.franceculture.fr/live/franceculture-midfi.mp3"
+                            ]
+                        }
+                    ]
+                }
+                , {
+                    "country_name": "Suisse",
+                    "stations": [
+                        {
+                            "station_name": "RTS — La 1ère",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/la-1ere/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Espace 2",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/espace-2/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Couleur 3",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/couleur3/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Option Musique",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/option-musique/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Radio Suisse Pop",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/rsp/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Radio Suisse Jazz",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/rsj/mp3_128"
+                            ]
+                        }
+                        , {
+                            "station_name": "RTS — Radio Suisse Classique",
+                            "stream_urls": [
+                                "http://stream.srg-ssr.ch/m/rsc_fr/mp3_128"
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            let html_code = "";
+            for (let _i = 0; _i < streams.length; _i++) {
+                let country = streams[_i];
+                let stations = country.stations;
+                let stations_strings = `\n                    <h2>${country.country_name}</h2>`;
+                for (let _j = 0; _j < stations.length; _j++) {
+                    let station = stations[_j];
+                    let stream_urls = station.stream_urls;
+                    let stream_urls_string = "";
+                    for (let _k = 0; _k < stream_urls.length; _k++) {
+                        let stream_url = stream_urls[_k];
+                        stream_urls_string += `\n                            <source src="${stream_url}">`;
+                    }
+                    stations_strings += `
+                    <figure>
+                        <figcaption>${station.station_name}</figcaption>
+                        <audio controls onplay="pause_other(this)">${stream_urls_string}
+                        </audio>
+                    </figure>`;
+                }
+                html_code += stations_strings;
+            }
+            document.getElementById("target").innerHTML = html_code;
+        }
+
         function pause_other(_e) {
             var audio_elems = document.querySelectorAll("audio");
             for (let _i = 0; _i < audio_elems.length; _i++) {
@@ -24,92 +175,11 @@
 
 </head>
 
-<body>
-
-    <main>
-        <h1>RADIOS</h1>
-
-        <p><a href="http://fluxradios.blogspot.com/">liste de flux radios</a></p>
-
-        <h2>France</h2>
-
-        <figure>
-            <figcaption>France Inter</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <!-- <source src="http://direct.franceinter.fr/live/franceinter-hifi.aac"> -->
-                <source src="http://direct.franceinter.fr/live/franceinter-midfi.mp3">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>Europe 1</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.europe1.fr/europe1.aac">
-                <source src="http://stream.europe1.fr/europe1.mp3">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>France Culture</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://direct.franceculture.fr/live/franceculture-hifi.aac">
-                <source src="http://direct.franceculture.fr/live/franceculture-midfi.mp3">
-            </audio>
-        </figure>
-
-        <h2>Suisse</h2>
-
-        <figure>
-            <figcaption>RTS — La 1ère</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/la-1ere/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Espace 2</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/espace-2/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Couleur 3</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/couleur3/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Option Musique</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/option-musique/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Radio Swiss Pop</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/rsp/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Radio Swiss Jazz</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/rsj/mp3_128">
-            </audio>
-        </figure>
-
-        <figure>
-            <figcaption>RTS — Radio Swiss Classique</figcaption>
-            <audio controls onplay="pause_other(this)">
-                <source src="http://stream.srg-ssr.ch/m/rsc_fr/mp3_128">
-            </audio>
-        </figure>
-
-❧
-    </main>
+<body onload="main()">
+    <h1>RADIOS</h1>
+    <p><a href="http://fluxradios.blogspot.com/">liste de flux radios</a></p>
+    <main id="target"></main>
+    <p style="margin:100px 0">❧</p>
 </body>
 
 </html>
