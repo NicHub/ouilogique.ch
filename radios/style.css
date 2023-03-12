@@ -2,10 +2,10 @@ body {
     background-color: rgb(30,30,30);
     color: burlywood;
     font-family: monospace;
-    font-size: 150%;
+    font-size: 140%;
 }
 main {
-    width: 90%;
+    width: 80%;
     margin: 10px auto 100px;
     display: block;
     text-align: center;
