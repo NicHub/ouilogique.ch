@@ -63,7 +63,7 @@
         function main() {
             let radio_station_playlist = [
                 {
-                    "country_name": "France",
+                    "geo_name": "France",
                     "stations": [
                         {
                             "station_name": "France Inter",
@@ -98,7 +98,7 @@
                     ]
                 }
                 , {
-                    "country_name": "Suisse",
+                    "geo_name": "Suisse romande",
                     "stations": [
                         {
                             "station_name": "RTS — La 1ère",
@@ -138,7 +138,7 @@
                             ]
                         }
                         , {
-                            "station_name": "RTS — Radio Swiss Pop",
+                            "station_name": "SRG SSR — Radio Swiss Pop",
                             "live_urls": [
                                 "https://www.radioswisspop.ch/fr"
                             ],
@@ -147,7 +147,7 @@
                             ]
                         }
                         , {
-                            "station_name": "RTS — Radio Swiss Jazz",
+                            "station_name": "SRG SSR — Radio Swiss Jazz",
                             "live_urls": [
                                 "https://www.radioswissjazz.ch/fr"
                             ],
@@ -156,7 +156,7 @@
                             ]
                         }
                         , {
-                            "station_name": "RTS — Radio Swiss Classic",
+                            "station_name": "SRG SSR — Radio Swiss Classic",
                             "live_urls": [
                                 "https://www.radioswissclassic.ch/fr"
                             ],
@@ -170,9 +170,9 @@
 
             let html_code = "";
             for (let _i = 0; _i < radio_station_playlist.length; _i++) {
-                let country = radio_station_playlist[_i];
-                let stations = country.stations;
-                let stations_strings = `\n                    <h2>${country.country_name}</h2>`;
+                let geo_region = radio_station_playlist[_i];
+                let stations = geo_region.stations;
+                let stations_strings = `\n                    <h2>${geo_region.geo_name}</h2>`;
                 for (let _j = 0; _j < stations.length; _j++) {
                     let station = stations[_j];
                     let stream_urls = station.stream_urls;
