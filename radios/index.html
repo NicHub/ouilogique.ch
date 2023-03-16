@@ -48,13 +48,19 @@
         }
 
         figcaption {
-
             padding: 0 0 5px 0;
         }
 
         audio {
             width: 100%;
             max-width: 300px;
+            border: 10px solid rgb(30, 30, 30);
+            border-radius: 40px;
+        }
+
+        audio.playing {
+            border: 10px solid rgba(255, 228, 196, 0.2);
+            border-radius: 40px;
         }
     </style>
     <script>
@@ -187,7 +193,7 @@
                     stations_strings += `
                     <figure>
                         <figcaption>${title}</figcaption>
-                        <audio controls onplay="pause_other(this)">${stream_urls_string}
+                        <audio controls onpause="decorate_active_audio(this);" onplay="pause_other(this); decorate_active_audio(this);">${stream_urls_string}
                         </audio>
                     </figure>`;
                 }
@@ -197,14 +203,26 @@
         }
 
         function pause_other(_e) {
-            var audio_elems = document.querySelectorAll("audio");
+            const audio_elems = document.querySelectorAll("audio");
             for (let _i = 0; _i < audio_elems.length; _i++) {
-                if (audio_elems[_i] == _e) {
-                    continue
+                if (audio_elems[_i] != _e) {
+                    audio_elems[_i].pause();
                 }
-                audio_elems[_i].pause();
             }
         }
+
+        function decorate_active_audio(_e) {
+            const audio_elems = document.querySelectorAll("audio");
+            for (let _i = 0; _i < audio_elems.length; _i++) {
+                if (audio_elems[_i].paused) {
+                    audio_elems[_i].classList.remove("playing");
+                }
+                else {
+                    audio_elems[_i].classList.add("playing");
+                }
+            }
+        }
+
     </script>
 
 </head>
