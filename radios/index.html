@@ -61,12 +61,15 @@
         "use strict";
 
         function main() {
-            let streams = [
+            let radio_station_playlist = [
                 {
                     "country_name": "France",
                     "stations": [
                         {
                             "station_name": "France Inter",
+                            "live_urls": [
+                                "https://www.radiofrance.fr/franceinter/direct"
+                            ],
                             "stream_urls": [
                                 "http://direct.franceinter.fr/live/franceinter-midfi.mp3",
                                 "http://direct.franceinter.fr/live/franceinter-midfi.mp3"
@@ -74,6 +77,9 @@
                         }
                         , {
                             "station_name": "Europe 1",
+                            "live_urls": [
+                                "https://www.europe1.fr/direct-video"
+                            ],
                             "stream_urls": [
                                 "http://stream.europe1.fr/europe1.aac",
                                 "http://stream.europe1.fr/europe1.mp3"
@@ -81,6 +87,9 @@
                         }
                         , {
                             "station_name": "France Culture",
+                            "live_urls": [
+                                "https://www.radiofrance.fr/franceculture"
+                            ],
                             "stream_urls": [
                                 "http://direct.franceculture.fr/live/franceculture-hifi.aac",
                                 "http://direct.franceculture.fr/live/franceculture-midfi.mp3"
@@ -93,42 +102,64 @@
                     "stations": [
                         {
                             "station_name": "RTS — La 1ère",
+                            "live_urls": [
+                                "https://www.rts.ch/audio-podcast/livepopup/la-1ere/",
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/la-1ere/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Espace 2",
+                            "live_urls": [
+                                "https://www.rts.ch/audio-podcast/livepopup/espace-2/"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/espace-2/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Couleur 3",
+                            "live_urls": [
+                                "https://www.rts.ch/audio-podcast/livepopup/couleur3/",
+                                "https://www.rts.ch/play/tv/direct/couleur-3?tvLiveId=8841634"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/couleur3/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Option Musique",
+                            "live_urls": [
+                                "https://www.rts.ch/audio-podcast/livepopup/option-musique/"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/option-musique/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Radio Swiss Pop",
+                            "live_urls": [
+                                "https://www.radioswisspop.ch/fr"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/rsp/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Radio Swiss Jazz",
+                            "live_urls": [
+                                "https://www.radioswissjazz.ch/fr"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/rsj/mp3_128"
                             ]
                         }
                         , {
                             "station_name": "RTS — Radio Swiss Classic",
+                            "live_urls": [
+                                "https://www.radioswissclassic.ch/fr"
+                            ],
                             "stream_urls": [
                                 "http://stream.srg-ssr.ch/m/rsc_fr/mp3_128"
                             ]
@@ -138,8 +169,8 @@
             ];
 
             let html_code = "";
-            for (let _i = 0; _i < streams.length; _i++) {
-                let country = streams[_i];
+            for (let _i = 0; _i < radio_station_playlist.length; _i++) {
+                let country = radio_station_playlist[_i];
                 let stations = country.stations;
                 let stations_strings = `\n                    <h2>${country.country_name}</h2>`;
                 for (let _j = 0; _j < stations.length; _j++) {
@@ -150,9 +181,12 @@
                         let stream_url = stream_urls[_k];
                         stream_urls_string += `\n                            <source src="${stream_url}">`;
                     }
+                    const title = station.live_urls.length > 0 ?
+                        `<a href="${station.live_urls[0]}">${station.station_name}</a>` :
+                        `${station.station_name}`
                     stations_strings += `
                     <figure>
-                        <figcaption>${station.station_name}</figcaption>
+                        <figcaption>${title}</figcaption>
                         <audio controls onplay="pause_other(this)">${stream_urls_string}
                         </audio>
                     </figure>`;
