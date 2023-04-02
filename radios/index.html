@@ -17,6 +17,7 @@
             font-size: 120%;
             text-align: center;
             font-weight: 400;
+            margin: 0 0 300px;
         }
 
         main {
@@ -115,6 +116,16 @@
                                 "https://direct.franceculture.fr/live/franceculture-midfi.mp3"
                             ]
                         }
+                        , {
+                            "station_name": "Radio 74",
+                            "live_urls": [
+                                "http://radio74.ice.infomaniak.ch/radios/radio74_player.html"
+                            ],
+                            "stream_urls": [
+                                "http://radio74.ice.infomaniak.ch/radio74.aac"
+                            ]
+                        }
+
                     ]
                 }
                 , {
@@ -185,7 +196,7 @@
                             ]
                         }
                         , {
-                            "station_name": "Radio Lac",
+                            "station_name": "Radio Lac — Genève",
                             "live_urls": [
                                 "https://www.radiolac.ch/direct/player/"
                             ],
@@ -193,6 +204,35 @@
                                 "https://radiolac.ice.infomaniak.ch/radiolac-high.mp3"
                             ]
                         }
+                        , {
+                            "station_name": "Radio Chablais",
+                            "live_urls": [
+                                "https://www.radiochablais.ch/player/"
+                            ],
+                            "stream_urls": [
+                                "https://radiochablais.ice.infomaniak.ch/radiochablais-high.mp3"
+                            ]
+                        }
+                        , {
+                            "station_name": "LFM — Lausanne FM",
+                            "live_urls": [
+                                "https://www.lfm.ch/player/popup/index.html"
+                            ],
+                            "stream_urls": [
+                                "https://lausannefm.ice.infomaniak.ch/lausannefm-high.mp3"
+                            ]
+                        }
+                        /*
+                        , {
+                            "station_name": "",
+                            "live_urls": [
+                                ""
+                            ],
+                            "stream_urls": [
+                                ""
+                            ]
+                        }
+                        */
                     ]
                 }
                 , {
@@ -266,11 +306,11 @@
 
 <body onload="main()">
     <h1>RADIOS</h1>
-    <p><a style="font-style:italic" href="http://fluxradios.blogspot.com/">liste de flux radios</a></p>
     <main id="target"></main>
     <p style="margin:100px 0; font-size:50pt; color:bisque;">𝄞</p>
-    <p style="color:#CCC"><a href="https://gist.github.com/NicHub/af77e134f69d06a90df4ff1e99e83b90">Enceintes
-            Bluetooth</a></p>
+    <p style="color:#CCC"><a href="https://gist.github.com/NicHub/af77e134f69d06a90df4ff1e99e83b90">Enceintes Bluetooth</a></p>
+    <p style="color:#CCC"><a href="http://fluxradios.blogspot.com/">fluxradios.blogspot.com</a></p>
+    <p style="color:#CCC"><a href="https://www.emetteurs.ch/wiki/index.php/La_bande_FM_et_DAB%2B_à_Lausanne">Radios région lausannoise</a></p>
 </body>
 
 </html>
