@@ -98,7 +98,7 @@
 
         /**
         * Load scripts asynchronously.
-        * The playlist can be specified in the “playlist” GET parameter.
+        * TODO: The playlist can be specified in the “playlist” GET parameter.
         * For example:
         * videowall.html?playlist=./assets/playlist_selection_1.js
         */
@@ -135,39 +135,45 @@
         ].forEach(elem =>
             loadScript(elem)
                 .then(data => {
-                    console.log("START");
                     main()
                 })
                 .catch(err => {
-                    console.log("ERREUR")
                     console.error(err);
                 }));
 
         function main() {
-            let html_code = "";
+
+
+            // Get all geo names and return an array containing only unique values.
+            let geo_names = [];
             for (let _i = 0; _i < radio_station_playlist.length; _i++) {
-                let geo_region = radio_station_playlist[_i];
-                let stations = geo_region.stations;
-                let stations_strings = `\n<h2>${geo_region.geo_name}</h2>`;
-                for (let _j = 0; _j < stations.length; _j++) {
-                    let station = stations[_j];
-                    let stream_urls = station.stream_urls;
+                let geo_name = radio_station_playlist[_i]["geo_name"];
+                geo_names.push(geo_name);
+            }
+            geo_names = geo_names.filter((value, index, array) => array.indexOf(value) === index);
+
+            // Loop through all geo names and create each station audio control.
+            let html_code = "";
+            for (let _i = 0; _i < geo_names.length; _i++) {
+                html_code += `\n<h2>${geo_names[_i]}</h2>`;
+                for (let _j = 0; _j < radio_station_playlist.length; _j++) {
+                    if (radio_station_playlist[_j]["geo_name"] !== geo_names[_i]) { continue; }
+                    const title = radio_station_playlist[_j]["live_urls"].length > 0 ?
+                        `<a href="${radio_station_playlist[_j]["live_urls"][0]}">${radio_station_playlist[_j]["station_name"]}</a>` :
+                        `${radio_station_playlist[_j]["station_name"]}`
+
                     let stream_urls_string = "";
-                    for (let _k = 0; _k < stream_urls.length; _k++) {
-                        let stream_url = stream_urls[_k];
-                        stream_urls_string += `\n                            <source src="${stream_url}">`;
+                    for (let _k = 0; _k < radio_station_playlist[_j]["stream_urls"].length; _k++) {
+                        stream_urls_string += `\n<source src="${radio_station_playlist[_j]["stream_urls"][_k]}">`;
                     }
-                    const title = station.live_urls.length > 0 ?
-                        `<a href="${station.live_urls[0]}">${station.station_name}</a>` :
-                        `${station.station_name}`
-                    stations_strings += `
-                            <figure>
-                                <figcaption>${title}</figcaption>
-                                <audio controls onpause="decorate_active_audio(this);" onplay="pause_other(this); decorate_active_audio(this);">${stream_urls_string}
-                                </audio>
-                            </figure>`;
+
+                    html_code += `
+                    <figure>
+                        <figcaption>${title}</figcaption>
+                        <audio controls onpause="decorate_active_audio(this);" onplay="pause_other(this); decorate_active_audio(this);">${stream_urls_string}
+                        </audio>
+                    </figure>`;
                 }
-                html_code += stations_strings;
             }
             document.getElementById("target").innerHTML = html_code;
         }
