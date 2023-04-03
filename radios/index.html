@@ -79,211 +79,101 @@
         }
         */
     </style>
+
+</head>
+
+<body>
+    <h1>RADIOS</h1>
+    <main id="target"></main>
+    <p style="margin:100px 0; font-size:50pt; color:bisque;">𝄞</p>
+    <p style="color:#CCC"><a href="https://gist.github.com/NicHub/af77e134f69d06a90df4ff1e99e83b90">Enceintes
+            Bluetooth</a></p>
+    <p style="color:#CCC"><a href="http://fluxradios.blogspot.com/">fluxradios.blogspot.com</a></p>
+    <p style="color:#CCC"><a href="https://www.emetteurs.ch/wiki/index.php/La_bande_FM_et_DAB%2B_à_Lausanne">Radios
+            région lausannoise</a></p>
+
+
     <script>
         "use strict";
 
-        function main() {
-            let radio_station_playlist = [
-                {
-                    "geo_name": "France",
-                    "stations": [
-                        {
-                            "station_name": "France Inter",
-                            "live_urls": [
-                                "https://www.radiofrance.fr/franceinter/direct"
-                            ],
-                            "stream_urls": [
-                                "https://direct.franceinter.fr/live/franceinter-midfi.mp3"
-                            ]
-                        }
-                        , {
-                            "station_name": "Europe 1",
-                            "live_urls": [
-                                "https://www.europe1.fr/direct-video"
-                            ],
-                            "stream_urls": [
-                                "https://stream.europe1.fr/europe1.mp3",
-                                "http://stream.europe1.fr/europe1.aac"
-                            ]
-                        }
-                        , {
-                            "station_name": "France Culture",
-                            "live_urls": [
-                                "https://www.radiofrance.fr/franceculture"
-                            ],
-                            "stream_urls": [
-                                "https://direct.franceculture.fr/live/franceculture-hifi.aac",
-                                "https://direct.franceculture.fr/live/franceculture-midfi.mp3"
-                            ]
-                        }
-                        , {
-                            "station_name": "Radio 74",
-                            "live_urls": [
-                                "http://radio74.ice.infomaniak.ch/radios/radio74_player.html"
-                            ],
-                            "stream_urls": [
-                                "http://radio74.ice.infomaniak.ch/radio74.aac"
-                            ]
-                        }
-                        , {
-                            "station_name": "France Musique",
-                            "live_urls": [
-                                "https://www.radiofrance.fr/francemusique"
-                            ],
-                            "stream_urls": [
-                                "http://direct.francemusique.fr/live/francemusique-midfi.mp3",
-                                "http://direct.francemusique.fr/live/francemusique-lofi.mp3"
-                            ]
-                        }
-                    ]
-                }
-                , {
-                    "geo_name": "Suisse romande",
-                    "stations": [
-                        {
-                            "station_name": "RTS — La 1ère",
-                            "live_urls": [
-                                "https://www.rts.ch/audio-podcast/livepopup/la-1ere/",
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/la-1ere/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "RTS — Espace 2",
-                            "live_urls": [
-                                "https://www.rts.ch/audio-podcast/livepopup/espace-2/"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/espace-2/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "RTS — Couleur 3",
-                            "live_urls": [
-                                "https://www.rts.ch/audio-podcast/livepopup/couleur3/",
-                                "https://www.rts.ch/play/tv/direct/couleur-3?tvLiveId=8841634"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/couleur3/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "RTS — Option Musique",
-                            "live_urls": [
-                                "https://www.rts.ch/audio-podcast/livepopup/option-musique/"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/option-musique/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "SRG SSR — Radio Swiss Pop",
-                            "live_urls": [
-                                "https://www.radioswisspop.ch/fr"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/rsp/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "SRG SSR — Radio Swiss Jazz",
-                            "live_urls": [
-                                "https://www.radioswissjazz.ch/fr"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/rsj/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "SRG SSR — Radio Swiss Classic",
-                            "live_urls": [
-                                "https://www.radioswissclassic.ch/fr"
-                            ],
-                            "stream_urls": [
-                                "https://stream.srg-ssr.ch/m/rsc_fr/mp3_128"
-                            ]
-                        }
-                        , {
-                            "station_name": "Radio Lac — Genève",
-                            "live_urls": [
-                                "https://www.radiolac.ch/direct/player/"
-                            ],
-                            "stream_urls": [
-                                "https://radiolac.ice.infomaniak.ch/radiolac-high.mp3"
-                            ]
-                        }
-                        , {
-                            "station_name": "Radio Chablais",
-                            "live_urls": [
-                                "https://www.radiochablais.ch/player/"
-                            ],
-                            "stream_urls": [
-                                "https://radiochablais.ice.infomaniak.ch/radiochablais-high.mp3"
-                            ]
-                        }
-                        , {
-                            "station_name": "LFM — Lausanne FM",
-                            "live_urls": [
-                                "https://www.lfm.ch/player/popup/index.html"
-                            ],
-                            "stream_urls": [
-                                "https://lausannefm.ice.infomaniak.ch/lausannefm-high.mp3"
-                            ]
-                        }
-                        /*
-                        , {
-                            "station_name": "",
-                            "live_urls": [
-                                ""
-                            ],
-                            "stream_urls": [
-                                ""
-                            ]
-                        }
-                        */
-                    ]
-                }
-                , {
-                    "geo_name": "USA — NY",
-                    "stations": [
-                        {
-                            "station_name": "Boss Radio 66",
-                            "live_urls": [
-                                "https://wfmuichiban.blogspot.com",
-                            ],
-                            "stream_urls": [
-                                "https://rfcmedia.streamguys1.com/bossradio66"
-                            ]
-                        }
-                    ]
-                }
-            ];
+        /**
+        * Load scripts asynchronously.
+        * TODO: The playlist can be specified in the “playlist” GET parameter.
+        * For example:
+        * videowall.html?playlist=./assets/playlist_selection_1.js
+        */
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const loadScript = (FILE_URL, async = true, type = "text/javascript") => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const scriptEle = document.createElement("script");
+                    scriptEle.type = type;
+                    scriptEle.async = async;
+                    scriptEle.src = FILE_URL;
 
-            let html_code = "";
+                    scriptEle.addEventListener("load", (ev) => {
+                        resolve({ status: true });
+                    });
+
+                    scriptEle.addEventListener("error", (ev) => {
+                        reject({
+                            status: false,
+                            message: `Failed to load the script ＄{FILE_URL}`
+                        });
+                    });
+
+                    document.body.appendChild(scriptEle);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        };
+
+        [
+            "./radio_station_playlist.js"
+        ].forEach(elem =>
+            loadScript(elem)
+                .then(data => {
+                    main()
+                })
+                .catch(err => {
+                    console.error(err);
+                }));
+
+        function main() {
+
+
+            // Get all geo names and return an array containing only unique values.
+            let geo_names = [];
             for (let _i = 0; _i < radio_station_playlist.length; _i++) {
-                let geo_region = radio_station_playlist[_i];
-                let stations = geo_region.stations;
-                let stations_strings = `\n<h2>${geo_region.geo_name}</h2>`;
-                for (let _j = 0; _j < stations.length; _j++) {
-                    let station = stations[_j];
-                    let stream_urls = station.stream_urls;
+                let geo_name = radio_station_playlist[_i]["geo_name"];
+                geo_names.push(geo_name);
+            }
+            geo_names = geo_names.filter((value, index, array) => array.indexOf(value) === index);
+
+            // Loop through all geo names and create each station audio control.
+            let html_code = "";
+            for (let _i = 0; _i < geo_names.length; _i++) {
+                html_code += `\n<h2>${geo_names[_i]}</h2>`;
+                for (let _j = 0; _j < radio_station_playlist.length; _j++) {
+                    if (radio_station_playlist[_j]["geo_name"] !== geo_names[_i]) { continue; }
+                    const title = radio_station_playlist[_j]["live_urls"].length > 0 ?
+                        `<a href="${radio_station_playlist[_j]["live_urls"][0]}">${radio_station_playlist[_j]["station_name"]}</a>` :
+                        `${radio_station_playlist[_j]["station_name"]}`
+
                     let stream_urls_string = "";
-                    for (let _k = 0; _k < stream_urls.length; _k++) {
-                        let stream_url = stream_urls[_k];
-                        stream_urls_string += `\n                            <source src="${stream_url}">`;
+                    for (let _k = 0; _k < radio_station_playlist[_j]["stream_urls"].length; _k++) {
+                        stream_urls_string += `\n<source src="${radio_station_playlist[_j]["stream_urls"][_k]}">`;
                     }
-                    const title = station.live_urls.length > 0 ?
-                        `<a href="${station.live_urls[0]}">${station.station_name}</a>` :
-                        `${station.station_name}`
-                    stations_strings += `
+
+                    html_code += `
                     <figure>
                         <figcaption>${title}</figcaption>
                         <audio controls onpause="decorate_active_audio(this);" onplay="pause_other(this); decorate_active_audio(this);">${stream_urls_string}
                         </audio>
                     </figure>`;
                 }
-                html_code += stations_strings;
             }
             document.getElementById("target").innerHTML = html_code;
         }
@@ -311,17 +201,6 @@
 
     </script>
 
-</head>
-
-<body onload="main()">
-    <h1>RADIOS</h1>
-    <main id="target"></main>
-    <p style="margin:100px 0; font-size:50pt; color:bisque;">𝄞</p>
-    <p style="color:#CCC"><a href="https://gist.github.com/NicHub/af77e134f69d06a90df4ff1e99e83b90">Enceintes
-            Bluetooth</a></p>
-    <p style="color:#CCC"><a href="http://fluxradios.blogspot.com/">fluxradios.blogspot.com</a></p>
-    <p style="color:#CCC"><a href="https://www.emetteurs.ch/wiki/index.php/La_bande_FM_et_DAB%2B_à_Lausanne">Radios
-            région lausannoise</a></p>
 </body>
 
 </html>
