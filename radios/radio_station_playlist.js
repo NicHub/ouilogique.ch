@@ -1,6 +1,6 @@
 let radio_station_playlist = [
     {
-        "geo_name": "France •",
+        "geo_name": "France",
         "stations": [
             {
                 "station_name": "France Inter",
