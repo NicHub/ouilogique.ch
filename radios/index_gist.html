@@ -131,7 +131,7 @@
         };
 
         [
-            "https://ouilogique.alwaysdata.net/radios.js"
+            "https://gist.githubusercontent.com/NicHub/5b7f8fb77dc23bba022dda6d0ab35cb1/raw/radio_station_playlist.js"
         ].forEach(elem =>
             loadScript(elem)
                 .then(data => {
@@ -155,7 +155,7 @@
                     let stream_urls_string = "";
                     for (let _k = 0; _k < stream_urls.length; _k++) {
                         let stream_url = stream_urls[_k];
-                        stream_urls_string += `\n<source src="${stream_url}">`;
+                        stream_urls_string += `\n                            <source src="${stream_url}">`;
                     }
                     const title = station.live_urls.length > 0 ?
                         `<a href="${station.live_urls[0]}">${station.station_name}</a>` :
