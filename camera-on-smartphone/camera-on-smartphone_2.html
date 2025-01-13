@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #video {
+            width: 100%;
+            max-width: 100vw;
+            height: auto;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #status {
+            margin: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <video id="video" autoplay playsinline></video>
+        <button id="startButton">Démarrer la caméra</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const startButton = document.getElementById('startButton');
+        const statusDiv = document.getElementById('status');
+
+        // Fonction pour afficher les messages de statut
+        function updateStatus(message) {
+            statusDiv.textContent = message;
+        }
+
+        // Fonction pour initialiser l'accès à la caméra avec fallbacks
+        function initializeMedia() {
+            if (!navigator.mediaDevices) {
+                navigator.mediaDevices = {};
+            }
+
+            if (!navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia = function (constraints) {
+                    const getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+                    if (!getUserMedia) {
+                        return Promise.reject(new Error('getUserMedia n\'est pas implémenté dans ce navigateur'));
+                    }
+
+                    return new Promise((resolve, reject) => {
+                        getUserMedia.call(navigator, constraints, resolve, reject);
+                    });
+                }
+            }
+        }
+
+        startButton.addEventListener('click', async () => {
+            try {
+                updateStatus('Initialisation de la caméra...');
+                initializeMedia();
+
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                updateStatus('Demande d\'accès à la caméra...');
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                video.srcObject = stream;
+                updateStatus('Caméra activée avec succès!');
+            } catch (err) {
+                console.error("Erreur :", err);
+                updateStatus('Erreur : ' + err.message);
+
+                if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                    updateStatus('Erreur : Cette fonctionnalité nécessite HTTPS sauf sur localhost');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
