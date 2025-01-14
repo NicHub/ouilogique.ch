@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #rssiMeter {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 50%;
+            position: relative;
+            background: conic-gradient(from 0deg, #4CAF50 0%, #FFEB3B 50%, #F44336 100%);
+        }
+
+        #pointer {
+            width: 4px;
+            height: 100px;
+            background: black;
+            position: absolute;
+            left: 98px;
+            top: 0;
+            transform-origin: bottom center;
+            transition: transform 0.3s;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #stats {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ESP32 Tracker</h1>
+    <button id="scanButton" class="button">Rechercher ESP32</button>
+
+    <div id="stats">
+        <h2>Informations</h2>
+        <p>RSSI: <span id="rssiValue">--</span> dBm</p>
+        <p>Distance estimée: <span id="distanceValue">--</span> mètres</p>
+    </div>
+
+    <div id="rssiMeter">
+        <div id="pointer"></div>
+    </div>
+
+    <script>
+        const ESP32_NAME = 'ESP32_TRACKER';
+        let device = null;
+        let isScanning = false;
+
+        document.getElementById('scanButton').addEventListener('click', async () => {
+            try {
+                if (!isScanning) {
+                    isScanning = true;
+                    document.getElementById('scanButton').textContent = 'Arrêter la recherche';
+                    startScanning();
+                } else {
+                    isScanning = false;
+                    document.getElementById('scanButton').textContent = 'Rechercher ESP32';
+                    stopScanning();
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur: ' + error);
+            }
+        });
+
+        async function startScanning() {
+            try {
+                const options = {
+                    filters: [{
+                        name: ESP32_NAME
+                    }],
+                    optionalServices: ['generic_access']
+                };
+
+                device = await navigator.bluetooth.requestDevice(options);
+                device.addEventListener('advertisementreceived', handleAdvertisement);
+                await device.watchAdvertisements();
+
+            } catch (error) {
+                console.error('Erreur de scan:', error);
+                isScanning = false;
+                document.getElementById('scanButton').textContent = 'Rechercher ESP32';
+            }
+        }
+
+        function stopScanning() {
+            if (device) {
+                device.removeEventListener('advertisementreceived', handleAdvertisement);
+                device.gatt?.disconnect();
+            }
+        }
+
+        function handleAdvertisement(event) {
+            const rssi = event.rssi;
+            updateRSSI(rssi);
+            const distance = calculateDistance(rssi);
+            updateDistance(distance);
+            updatePointer(rssi);
+        }
+
+        function calculateDistance(rssi) {
+            // Formule approximative de calcul de distance
+            const measuredPower = -69; // RSSI à 1 mètre (à calibrer)
+            const n = 2.0; // Coefficient de perte de propagation
+            return Math.pow(10, (measuredPower - rssi) / (10 * n)).toFixed(2);
+        }
+
+        function updateRSSI(rssi) {
+            document.getElementById('rssiValue').textContent = rssi;
+        }
+
+        function updateDistance(distance) {
+            document.getElementById('distanceValue').textContent = distance;
+        }
+
+        function updatePointer(rssi) {
+            // Conversion du RSSI (-100 à -30) en degrés (0 à 180)
+            const minRSSI = -100;
+            const maxRSSI = -30;
+            const degree = ((rssi - minRSSI) / (maxRSSI - minRSSI)) * 180;
+            document.getElementById('pointer').style.transform = `rotate(${degree}deg)`;
+        }
+
+        // Vérification de la compatibilité du navigateur
+        if (!navigator.bluetooth) {
+            alert('Le Web Bluetooth n\'est pas supporté par ce navigateur. Utilisez Chrome ou Edge.');
+            document.getElementById('scanButton').disabled = true;
+        }
+    </script>
+</body>
+
+</html>
