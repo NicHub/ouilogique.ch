@@ -4,34 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Tracker</title>
+    <title>Scanner Bluetooth</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            text-align: center;
-        }
-
-        #rssiMeter {
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-            border-radius: 50%;
-            position: relative;
-            background: conic-gradient(from 0deg, #4CAF50 0%, #FFEB3B 50%, #F44336 100%);
-        }
-
-        #pointer {
-            width: 4px;
-            height: 100px;
-            background: black;
-            position: absolute;
-            left: 98px;
-            top: 0;
-            transform-origin: bottom center;
-            transition: transform 0.3s;
         }
 
         .button {
@@ -46,114 +25,217 @@
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 4px;
+            width: 100%;
         }
 
-        #stats {
-            margin: 20px;
-            padding: 20px;
+        #deviceList {
+            margin-top: 20px;
+        }
+
+        .device-button {
+            background-color: #2196F3;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: left;
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .device-info {
+            font-size: 0.8em;
+            color: #ddd;
+        }
+
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #connectedDevice {
+            margin: 20px 0;
+            padding: 15px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .rssi-indicator {
+            display: inline-block;
+            width: 50px;
+            height: 15px;
+            background: linear-gradient(to right, red, yellow, green);
+            margin-left: 10px;
+            border-radius: 3px;
+        }
+
+        .rssi-pointer {
+            width: 3px;
+            height: 19px;
+            background: black;
+            position: relative;
+            top: -17px;
+            transition: margin-left 0.3s;
         }
     </style>
 </head>
 
 <body>
-    <h1>ESP32 Tracker</h1>
-    <button id="scanButton" class="button">Rechercher ESP32</button>
+    <h1>Scanner Bluetooth</h1>
+    <button id="scanButton" class="button">Démarrer le scan</button>
 
-    <div id="stats">
-        <h2>Informations</h2>
-        <p>RSSI: <span id="rssiValue">--</span> dBm</p>
-        <p>Distance estimée: <span id="distanceValue">--</span> mètres</p>
+    <div id="status"></div>
+
+    <div id="connectedDevice">
+        <h3>Appareil connecté</h3>
+        <p>Nom: <span id="connectedName"></span></p>
+        <p>ID: <span id="connectedId"></span></p>
+        <p>
+            RSSI: <span id="connectedRssi"></span>
+        <div class="rssi-indicator">
+            <div class="rssi-pointer"></div>
+        </div>
+        </p>
+        <button id="disconnectButton" class="button">Déconnecter</button>
     </div>
 
-    <div id="rssiMeter">
-        <div id="pointer"></div>
-    </div>
+    <div id="deviceList"></div>
 
     <script>
-        const ESP32_NAME = 'ESP32_TRACKER';
-        let device = null;
+        const deviceList = new Map();
         let isScanning = false;
+        let connectedDevice = null;
 
-        document.getElementById('scanButton').addEventListener('click', async () => {
-            try {
-                if (!isScanning) {
-                    isScanning = true;
-                    document.getElementById('scanButton').textContent = 'Arrêter la recherche';
-                    startScanning();
-                } else {
-                    isScanning = false;
-                    document.getElementById('scanButton').textContent = 'Rechercher ESP32';
-                    stopScanning();
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                alert('Erreur: ' + error);
+        document.getElementById('scanButton').addEventListener('click', toggleScan);
+        document.getElementById('disconnectButton').addEventListener('click', disconnectDevice);
+
+        async function toggleScan() {
+            if (!isScanning) {
+                startScanning();
+            } else {
+                stopScanning();
             }
-        });
+        }
 
         async function startScanning() {
             try {
+                isScanning = true;
+                document.getElementById('scanButton').textContent = 'Arrêter le scan';
+                document.getElementById('status').textContent = 'Scanning...';
+                document.getElementById('status').className = '';
+
                 const options = {
-                    filters: [{
-                        name: ESP32_NAME
-                    }],
+                    acceptAllDevices: true,
                     optionalServices: ['generic_access']
                 };
 
-                device = await navigator.bluetooth.requestDevice(options);
-                device.addEventListener('advertisementreceived', handleAdvertisement);
-                await device.watchAdvertisements();
+                // Démarrer le scan
+                navigator.bluetooth.requestDevice(options)
+                    .then(device => {
+                        deviceList.set(device.id, device);
+                        updateDeviceList();
+                        connectToDevice(device);
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du scan:', error);
+                        showError('Erreur lors du scan: ' + error);
+                        stopScanning();
+                    });
 
             } catch (error) {
-                console.error('Erreur de scan:', error);
-                isScanning = false;
-                document.getElementById('scanButton').textContent = 'Rechercher ESP32';
+                console.error('Erreur:', error);
+                showError('Erreur: ' + error);
+                stopScanning();
             }
         }
 
         function stopScanning() {
-            if (device) {
-                device.removeEventListener('advertisementreceived', handleAdvertisement);
-                device.gatt?.disconnect();
+            isScanning = false;
+            document.getElementById('scanButton').textContent = 'Démarrer le scan';
+            document.getElementById('status').textContent = 'Scan arrêté';
+            document.getElementById('status').className = '';
+        }
+
+        async function connectToDevice(device) {
+            try {
+                connectedDevice = device;
+                document.getElementById('connectedName').textContent = device.name || 'Inconnu';
+                document.getElementById('connectedId').textContent = device.id;
+                document.getElementById('connectedDevice').style.display = 'block';
+
+                showSuccess('Connecté à ' + (device.name || 'dispositif inconnu'));
+
+                // Surveiller les déconnexions
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+
+                // Se connecter au GATT
+                const server = await device.gatt.connect();
+                console.log('Connecté au serveur GATT');
+
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                showError('Erreur de connexion: ' + error);
             }
         }
 
-        function handleAdvertisement(event) {
-            const rssi = event.rssi;
-            updateRSSI(rssi);
-            const distance = calculateDistance(rssi);
-            updateDistance(distance);
-            updatePointer(rssi);
+        function disconnectDevice() {
+            if (connectedDevice) {
+                connectedDevice.gatt.disconnect();
+                onDisconnected();
+            }
         }
 
-        function calculateDistance(rssi) {
-            // Formule approximative de calcul de distance
-            const measuredPower = -69; // RSSI à 1 mètre (à calibrer)
-            const n = 2.0; // Coefficient de perte de propagation
-            return Math.pow(10, (measuredPower - rssi) / (10 * n)).toFixed(2);
+        function onDisconnected() {
+            document.getElementById('connectedDevice').style.display = 'none';
+            connectedDevice = null;
+            showSuccess('Déconnecté');
         }
 
-        function updateRSSI(rssi) {
-            document.getElementById('rssiValue').textContent = rssi;
+        function updateDeviceList() {
+            const listElement = document.getElementById('deviceList');
+            listElement.innerHTML = '';
+
+            deviceList.forEach((device, id) => {
+                const button = document.createElement('button');
+                button.className = 'device-button';
+                button.innerHTML = `
+                    ${device.name || 'Dispositif inconnu'}
+                    <div class="device-info">ID: ${id}</div>
+                `;
+                button.onclick = () => connectToDevice(device);
+                listElement.appendChild(button);
+            });
         }
 
-        function updateDistance(distance) {
-            document.getElementById('distanceValue').textContent = distance;
+        function showError(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'error';
         }
 
-        function updatePointer(rssi) {
-            // Conversion du RSSI (-100 à -30) en degrés (0 à 180)
-            const minRSSI = -100;
-            const maxRSSI = -30;
-            const degree = ((rssi - minRSSI) / (maxRSSI - minRSSI)) * 180;
-            document.getElementById('pointer').style.transform = `rotate(${degree}deg)`;
+        function showSuccess(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'success';
         }
 
         // Vérification de la compatibilité du navigateur
         if (!navigator.bluetooth) {
-            alert('Le Web Bluetooth n\'est pas supporté par ce navigateur. Utilisez Chrome ou Edge.');
+            showError('Le Web Bluetooth n\'est pas supporté par ce navigateur. Utilisez Chrome ou Edge.');
             document.getElementById('scanButton').disabled = true;
         }
     </script>
