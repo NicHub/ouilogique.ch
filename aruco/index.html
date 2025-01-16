@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détection Aruco</title>
     <script src="https://cdn.jsdelivr.net/npm/opencv.js@1.2.1"></script>
     <style>
@@ -52,25 +51,99 @@
             width: 100%;
             max-width: 620px;
         }
+
+        select {
+            padding: 8px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 620px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 
 <body>
     <h1>Détecteur de marqueurs Aruco</h1>
+    <div class="controls">
+        <select id="cameraSelect">
+            <option value="">Sélectionnez une caméra...</option>
+        </select>
+        <button onclick="startCamera()">Démarrer la caméra</button>
+        <button onclick="stopCamera()">Arrêter la caméra</button>
+    </div>
     <video id="videoElement" autoplay playsinline></video>
     <canvas id="canvasOutput"></canvas>
     <div id="info">Marqueurs détectés: <span id="markers">0</span></div>
-    <button onclick="startCamera()">Démarrer la caméra</button>
 
     <script>
         let video = document.getElementById("videoElement");
         let canvasOutput = document.getElementById("canvasOutput");
         let markerInfo = document.getElementById("markers");
+        let cameraSelect = document.getElementById("cameraSelect");
+        let stream = null;
+        let processing = false;
+
+        // Énumérer les caméras disponibles
+        async function listCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                cameraSelect.innerHTML = '<option value="">Sélectionnez une caméra...</option>';
+                videoDevices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `Caméra ${cameraSelect.length}`;
+                    cameraSelect.appendChild(option);
+                });
+            } catch (err) {
+                console.error("Erreur lors de l'énumération des caméras:", err);
+            }
+        }
+
+        // Demander la permission et lister les caméras
+        async function initialize() {
+            try {
+                // Demander d'abord l'accès à une caméra pour obtenir les labels
+                const initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                initialStream.getTracks().forEach(track => track.stop());
+
+                await listCameras();
+            } catch (err) {
+                console.error("Erreur d'initialisation:", err);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                processing = false;
+            }
+        }
 
         async function startCamera() {
+            stopCamera();
+
+            if (!cameraSelect.value) {
+                alert("Veuillez sélectionner une caméra");
+                return;
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
+                stream = await navigator.mediaDevices.getUserMedia({
                     video: {
+                        deviceId: cameraSelect.value,
                         width: { ideal: 640 },
                         height: { ideal: 480 }
                     }
@@ -78,22 +151,37 @@
                 video.srcObject = stream;
 
                 // Attendre que OpenCV soit chargé
-                cv['onRuntimeInitialized'] = function () {
+                if (cv.Mat) {
                     processVideo();
+                } else {
+                    cv['onRuntimeInitialized'] = function () {
+                        processVideo();
+                    }
                 }
             } catch (err) {
                 console.error("Erreur d'accès à la caméra:", err);
+                alert("Erreur d'accès à la caméra: " + err.message);
             }
         }
 
         function processVideo() {
+            if (!video.srcObject) return;
+
+            processing = true;
             let cap = new cv.VideoCapture(video);
             let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
             let gray = new cv.Mat();
-            let dictionary = new cv.aruco_Dictionary(cv.DICT_6X6_250);
+            // Utilisation du dictionnaire 4x4
+            let dictionary = new cv.aruco_Dictionary(cv.DICT_4X4_50);
             let parameters = new cv.aruco_DetectorParameters();
 
             function processFrame() {
+                if (!processing) {
+                    frame.delete();
+                    gray.delete();
+                    return;
+                }
+
                 try {
                     cap.read(frame);
                     cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY);
@@ -129,6 +217,9 @@
 
             processFrame();
         }
+
+        // Initialiser la liste des caméras au chargement
+        initialize();
     </script>
 </body>
 
