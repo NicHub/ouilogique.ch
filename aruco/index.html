@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection Aruco</title>
+    <script src="https://cdn.jsdelivr.net/npm/opencv.js@1.2.1"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #videoElement {
+            width: 100%;
+            max-width: 640px;
+            margin: 20px 0;
+        }
+
+        #canvasOutput {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #info {
+            margin: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 620px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Détecteur de marqueurs Aruco</h1>
+    <video id="videoElement" autoplay playsinline></video>
+    <canvas id="canvasOutput"></canvas>
+    <div id="info">Marqueurs détectés: <span id="markers">0</span></div>
+    <button onclick="startCamera()">Démarrer la caméra</button>
+
+    <script>
+        let video = document.getElementById("videoElement");
+        let canvasOutput = document.getElementById("canvasOutput");
+        let markerInfo = document.getElementById("markers");
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                video.srcObject = stream;
+
+                // Attendre que OpenCV soit chargé
+                cv['onRuntimeInitialized'] = function () {
+                    processVideo();
+                }
+            } catch (err) {
+                console.error("Erreur d'accès à la caméra:", err);
+            }
+        }
+
+        function processVideo() {
+            let cap = new cv.VideoCapture(video);
+            let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            let gray = new cv.Mat();
+            let dictionary = new cv.aruco_Dictionary(cv.DICT_6X6_250);
+            let parameters = new cv.aruco_DetectorParameters();
+
+            function processFrame() {
+                try {
+                    cap.read(frame);
+                    cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY);
+
+                    let corners = new cv.MatVector();
+                    let ids = new cv.Mat();
+                    let rejected = new cv.MatVector();
+
+                    // Détecter les marqueurs
+                    cv.detectMarkers(gray, dictionary, corners, ids, parameters, rejected);
+
+                    // Dessiner les marqueurs détectés
+                    if (ids.rows > 0) {
+                        cv.drawDetectedMarkers(frame, corners, ids);
+                        markerInfo.textContent = ids.rows;
+                    } else {
+                        markerInfo.textContent = "0";
+                    }
+
+                    cv.imshow('canvasOutput', frame);
+
+                    // Libérer la mémoire
+                    corners.delete();
+                    ids.delete();
+                    rejected.delete();
+
+                } catch (err) {
+                    console.error(err);
+                }
+
+                requestAnimationFrame(processFrame);
+            }
+
+            processFrame();
+        }
+    </script>
+</body>
+
+</html>

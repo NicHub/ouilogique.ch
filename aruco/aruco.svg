@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    shape-rendering="crispEdges"
+    viewBox="-1294 -994 1000 1000"
+    preserveAspectRatio="xMidYMid meet"
+>
+
+<!--
+
+@copyright (c) 2025. All rights reserved.
+
+@project        Aruco
+@author         Nicolas Jeanmonod
+@date           January 2025
+
+
+Reading
+http://www.w3.org/Graphics/SVG/IG/resources/svgprimer.html
+
+Printing with
+https://fr.pixartprinting.ch/grand-format/imprimerie-baches-et-micro-perfores/bache-pvc/
+
+Printing dimensions
+250 cm x 190 cm
+
+PDF size with bleeds (fond perdu)
+258.8 cm x 198.8 cm
+
+-->
+
+<title>P2 CAMERA CALIBRATION CANVAS</title>
+
+<desc>P2 CAMERA CALIBRATION CANVAS</desc>
+
+<style>
+    svg {
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+
+    text {
+        text-rendering: optimizeLegibility;
+        font-size: 10px;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: 400;
+        font-stretch: normal;
+        fill: black;
+        fill-opacity: 1;
+        stroke: none;
+        font-family: "Noway Round", monospace;
+        alignment-baseline: ideographic;
+        dominant-baseline: middle;
+    }
+
+
+    .grid-scale {
+        fill: none;
+        stroke-linecap: square;
+    }
+
+    .scale-line-100 {
+        stroke: #c0111e;
+        stroke-width: 2px;
+    }
+
+    .scale-line-50 {
+        stroke: #c0111e;
+        stroke-width: 1px;
+    }
+
+    .scale-line-10 {
+        stroke: blue;
+        stroke-width: 0.5px;
+    }
+
+    .scale-line-x {
+        opacity: 1;
+    }
+
+    .scale-line-y {
+        opacity: 1;
+    }
+
+    .centering-mark path {
+        stroke-width: 0.5px;
+        stroke-linecap: round;
+    }
+
+    .centering-mark circle {
+        stroke-width: 2px;
+    }
+
+    @media print {
+        .outer-rect {
+            display: none;
+        }
+        @page {
+            size: 2588mm 1988mm;
+            margin: 0;
+            padding: 0;
+        }
+        text {
+            font-size: 11px;
+        }
+        .scale-line-100 {
+            stroke-width: 4mm;
+        }
+        .scale-line-50 {
+            stroke-width: 2mm;
+        }
+        .scale-line-10 {
+            stroke-width: 1mm;
+        }
+        .centering-mark path {
+            stroke-width: 1mm;
+        }
+        .centering-mark circle {
+            stroke-width: 4mm;
+        }
+    }
+</style>
+
+<g id="container">
+
+    <script type="text/javascript" xlink:href="./assets/aruco_dict.js"></script>
+    <script type="text/javascript" xlink:href="./assets/aruco.js"></script>
+    <g id="aruco_00" transform="translate(-950, -750)"><script type="text/javascript">aruco("4x4_1000", 0, 100, "aruco_00");</script></g>
+
+</g>
+
+</svg>
