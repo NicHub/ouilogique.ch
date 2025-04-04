@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,14 @@
     <title>Scanner de QR Code</title>
     <script src="jsQR.min.js"></script>
     <style>
+        :root {
+            --font-size: 20px;
+        }
+
+        * {
+            font-size: var(--font-size);
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -17,8 +25,20 @@
             padding: 20px;
         }
 
+        h1 {
+            text-transform: uppercase;
+            font-size: calc(var(--font-size) * 1.5);
+        }
+
+        h2 {
+            font-size: inherit;
+        }
+
         .container {
             max-width: 800px;
+            /*
+            max-width: 100%;
+            */
             width: 100%;
             text-align: center;
         }
@@ -59,7 +79,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             margin: 20px auto;
             gap: 10px;
         }
@@ -70,7 +90,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: inherit;
             background-color: #2196F3;
             color: white;
             transition: background-color 0.2s;
@@ -153,6 +173,7 @@
 
         input[type="text"] {
             width: 100%;
+            box-sizing: border-box;
             padding: 10px;
             margin-top: 10px;
             border: 1px solid #ccc;
@@ -168,28 +189,34 @@
 
 <body>
     <div class="container">
-        <h1>Scanner de QR Code</h1>
+        <h1>QR code reader</h1>
 
         <div class="controls">
+
+            <h2>Read QR code with camera·s</h2>
             <div class="camera-list" id="cameraList">
-                <div>Chargement des caméras...</div>
+                <div>Loading cameras...</div>
             </div>
-            <button id="openImageButton">Ouvrir une image QR Code</button>
+
+            <h2>Read QR code from file</h2>
+            <button id="openImageButton">Open a QR Code image</button>
+
+            <h2>Read QR code from web page</h2>
             <input type="file" id="imageFile" accept="image/*">
-            <input type="text" id="urlInput" placeholder="Entrez l'URL de la page Web"
+            <input type="text" id="urlInput" placeholder="Enter the URL of the web page"
                 value="https://en.wikipedia.org/wiki/QR_code">
-            <button id="scanWebPageButton">Scanner la page Web</button>
+            <button id="scanWebPageButton">Scan the Web Page</button>
         </div>
 
         <div id="video-container">
             <video id="video"></video>
         </div>
 
-        <div id="result">Le résultat du scan apparaîtra ici</div>
+        <div id="result">The scan result will appear here</div>
         <p class="status" id="status"></p>
 
         <div class="history">
-            <h2>Historique des scans</h2>
+            <h2>Scan History</h2>
             <ul class="history-list" id="history"></ul>
         </div>
     </div>
@@ -230,16 +257,16 @@
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
                 if (videoDevices.length === 0) {
-                    cameraList.innerHTML = '<div>Aucune caméra trouvée</div>';
+                    cameraList.innerHTML = '<div>No cameras found</div>';
                     return;
                 }
 
                 cameraList.innerHTML = videoDevices.map(device => `
                     <div class="camera-control">
                         <button class="camera-button" data-device-id="${device.deviceId}">
-                            ${device.label || `Caméra ${videoDevices.indexOf(device) + 1}`}
+                            ${device.label || `Camera ${videoDevices.indexOf(device) + 1}`}
                         </button>
-                        <button class="stop-button" data-device-id="${device.deviceId}" style="display: none;">Arrêter</button>
+                        <button class="stop-button" data-device-id="${device.deviceId}" style="display: none;">STOP CAMERA</button>
                     </div>
                 `).join('');
 
@@ -268,7 +295,7 @@
                 }
 
             } catch (err) {
-                statusElement.textContent = `Erreur lors du chargement des caméras: ${err.message}`;
+                statusElement.textContent = `Error loading cameras: ${err.message}`;
             }
         }
 
@@ -278,7 +305,7 @@
                 stream.getTracks().forEach(track => track.stop());
                 await loadCameras();
             } catch (err) {
-                statusElement.textContent = `Erreur d'initialisation: ${err.message}`;
+                statusElement.textContent = `Initialization error: ${err.message}`;
             }
         }
 
@@ -299,7 +326,7 @@
                 video.play();
                 cameraList.querySelector(`.camera-button[data-device-id="${deviceId}"]`).style.display = 'none';
                 cameraList.querySelector(`.stop-button[data-device-id="${deviceId}"]`).style.display = 'block';
-                statusElement.textContent = 'Caméra active - Placez un QR code devant';
+                statusElement.textContent = 'Camera active — Place a QR code in front';
                 scanning = true;
                 scanQRCode();
             } catch (err) {
@@ -311,7 +338,7 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
-                statusElement.textContent = 'Caméra arrêtée';
+                statusElement.textContent = 'Camera stopped';
                 scanning = false;
             }
         }
@@ -379,7 +406,7 @@
                             resultDiv.innerHTML = formatResult(code.data);
                             addToHistory(code.data);
                         } else {
-                            resultDiv.innerHTML = 'Aucun QR code trouvé';
+                            resultDiv.innerHTML = 'No QR code found';
                         }
                     };
                     img.src = e.target.result;
@@ -392,14 +419,14 @@
             const url = urlInput.value;
             const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
             if (!isValidUrl(url)) {
-                statusElement.textContent = 'URL invalide';
+                statusElement.textContent = 'Invalid URL';
                 return;
             }
 
             try {
                 const response = await fetch(proxyUrl, { mode: 'cors' });
                 if (!response.ok) {
-                    throw new Error('Erreur de réseau');
+                    throw new Error('Network error');
                 }
                 const html = await response.text();
                 const parser = new DOMParser();
@@ -423,8 +450,13 @@
                             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                             const code = jsQR(imageData.data, imageData.width, imageData.height);
 
+                            const link = document.createElement('a');
+                            link.href = imgSrc;
+                            link.textContent = imgSrc;
+                            link.target = '_blank';
                             const hr = document.createElement('hr');
                             document.body.appendChild(hr);
+                            document.body.appendChild(link);
                             document.body.appendChild(image);
                             const paragraph = document.createElement('p');
                             if (code) {
@@ -439,13 +471,13 @@
                         };
                         image.src = imgUrl;
                     } catch (err) {
-                        statusElement.textContent = `Erreur: ${imgSrc}\n${err.message}`;
+                        statusElement.textContent = `Error: ${imgSrc}\n${err.message}`;
                     }
                 }
 
-                statusElement.textContent = 'Scan terminé';
+                statusElement.textContent = 'Scan completed';
             } catch (err) {
-                statusElement.textContent = `Erreur: ${err.message}`;
+                statusElement.textContent = `Error: ${err.message}`;
             }
         }
 
