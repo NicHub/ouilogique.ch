@@ -158,6 +158,11 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
+        hr {
+            border: 2px solid black;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -171,7 +176,8 @@
             </div>
             <button id="openImageButton">Ouvrir une image QR Code</button>
             <input type="file" id="imageFile" accept="image/*">
-            <input type="text" id="urlInput" placeholder="Entrez l'URL de la page Web">
+            <input type="text" id="urlInput" placeholder="Entrez l'URL de la page Web"
+                value="https://en.wikipedia.org/wiki/QR_code">
             <button id="scanWebPageButton">Scanner la page Web</button>
         </div>
 
@@ -384,13 +390,14 @@
 
         async function scanWebPage() {
             const url = urlInput.value;
+            const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
             if (!isValidUrl(url)) {
                 statusElement.textContent = 'URL invalide';
                 return;
             }
 
             try {
-                const response = await fetch(url, { mode: 'cors' });
+                const response = await fetch(proxyUrl, { mode: 'cors' });
                 if (!response.ok) {
                     throw new Error('Erreur de réseau');
                 }
@@ -401,26 +408,39 @@
 
                 for (const img of images) {
                     const imgSrc = img.src;
-                    const imgBlob = await fetch(imgSrc, { mode: 'cors' }).then(r => r.blob());
-                    const imgUrl = URL.createObjectURL(imgBlob);
+                    try {
+                        const imgBlob = await fetch(imgSrc, { mode: 'cors' }).then(r => r.blob());
+                        const imgUrl = URL.createObjectURL(imgBlob);
 
-                    const image = new Image();
-                    image.onload = function () {
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.width = image.width;
-                        canvas.height = image.height;
-                        context.drawImage(image, 0, 0);
+                        const image = new Image();
+                        image.onload = function () {
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.width = image.width;
+                            canvas.height = image.height;
+                            context.drawImage(image, 0, 0);
 
-                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-                        if (code) {
-                            resultDiv.innerHTML = formatResult(code.data);
-                            addToHistory(code.data);
-                        }
-                    };
-                    image.src = imgUrl;
+                            const hr = document.createElement('hr');
+                            document.body.appendChild(hr);
+                            document.body.appendChild(image);
+                            const paragraph = document.createElement('p');
+                            if (code) {
+                                resultDiv.innerHTML = formatResult(code.data);
+                                addToHistory(code.data);
+                                paragraph.textContent = resultDiv.innerHTML;
+                            }
+                            else {
+                                paragraph.textContent = "NO QR CODE FOUND";
+                            }
+                            document.body.appendChild(paragraph);
+                        };
+                        image.src = imgUrl;
+                    } catch (err) {
+                        statusElement.textContent = `Erreur: ${imgSrc}\n${err.message}`;
+                    }
                 }
 
                 statusElement.textContent = 'Scan terminé';

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch HTML from URL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        input,
+        button {
+            margin: 10px 0;
+            padding: 10px;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Fetch HTML from URL</h1>
+    <input type="text" id="urlInput" value="https://en.wikipedia.org/wiki/QR_code#Funerary_use" size="50">
+    <button id="scanWebPageButton">Fetch HTML</button>
+    <pre id="htmlOutput"></pre>
+
+    <script>
+        document.getElementById('scanWebPageButton').addEventListener('click', function () {
+            const url = document.getElementById('urlInput').value;
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+
+            // Fetch the HTML content from the URL using the proxy
+            fetch(proxyUrl + url, {
+                mode: 'cors'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('htmlOutput').textContent = data;
+                })
+                .catch(error => {
+                    document.getElementById('htmlOutput').textContent = 'Error: ' + error.message;
+                });
+        });
+    </script>
+</body>
+
+</html>
