@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner de QR Code</title>
+    <script src="jsQR.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        #video-container {
+            position: relative;
+            margin: 20px auto;
+            max-width: 640px;
+            width: 100%;
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            word-break: break-all;
+        }
+
+        #result a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        #result a:hover {
+            text-decoration: underline;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            gap: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #2196F3;
+            color: white;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        button.active {
+            background-color: #1976D2;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #startButton,
+        #stopButton {
+            background-color: #4CAF50;
+        }
+
+        #startButton:hover,
+        #stopButton:hover {
+            background-color: #45a049;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .camera-list {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .history {
+            margin-top: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .history h2 {
+            margin-top: 0;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .history-list li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-list li a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .history-list li a:hover {
+            text-decoration: underline;
+        }
+
+        .history-list li:last-child {
+            border-bottom: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Scanner de QR Code</h1>
+
+        <div class="controls">
+            <div class="camera-list" id="cameraList">
+                <div>Chargement des caméras...</div>
+            </div>
+            <button id="openImageButton">Ouvrir une image QR Code</button>
+            <input type="file" id="imageFile" accept="image/*">
+            <input type="text" id="urlInput" placeholder="Entrez l'URL de la page Web">
+            <button id="scanWebPageButton">Scanner la page Web</button>
+        </div>
+
+        <div id="video-container">
+            <video id="video"></video>
+        </div>
+
+        <div id="result">Le résultat du scan apparaîtra ici</div>
+        <p class="status" id="status"></p>
+
+        <div class="history">
+            <h2>Historique des scans</h2>
+            <ul class="history-list" id="history"></ul>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const resultDiv = document.getElementById('result');
+        const openImageButton = document.getElementById('openImageButton');
+        const imageFile = document.getElementById('imageFile');
+        const urlInput = document.getElementById('urlInput');
+        const scanWebPageButton = document.getElementById('scanWebPageButton');
+        const statusElement = document.getElementById('status');
+        const cameraList = document.getElementById('cameraList');
+        const historyList = document.getElementById('history');
+        let stream = null;
+        let scanning = false;
+        let selectedCameraId = null;
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function formatResult(content) {
+            if (isValidUrl(content)) {
+                return `<a href="${content}" target="_blank">${content}</a>`;
+            }
+            return content;
+        }
+
+        async function loadCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                if (videoDevices.length === 0) {
+                    cameraList.innerHTML = '<div>Aucune caméra trouvée</div>';
+                    return;
+                }
+
+                cameraList.innerHTML = videoDevices.map(device => `
+                    <div class="camera-control">
+                        <button class="camera-button" data-device-id="${device.deviceId}">
+                            ${device.label || `Caméra ${videoDevices.indexOf(device) + 1}`}
+                        </button>
+                        <button class="stop-button" data-device-id="${device.deviceId}" style="display: none;">Arrêter</button>
+                    </div>
+                `).join('');
+
+                cameraList.querySelectorAll('.camera-button').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        cameraList.querySelectorAll('.camera-button').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        button.classList.add('active');
+                        selectedCameraId = button.dataset.deviceId;
+                        await startScanning(button.dataset.deviceId);
+                    });
+                });
+
+                cameraList.querySelectorAll('.stop-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        stopScanning();
+                        button.style.display = 'none';
+                        cameraList.querySelector(`.camera-button[data-device-id="${button.dataset.deviceId}"]`).style.display = 'block';
+                    });
+                });
+
+                const firstCamera = cameraList.querySelector('.camera-button');
+                if (firstCamera) {
+                    firstCamera.click();
+                }
+
+            } catch (err) {
+                statusElement.textContent = `Erreur lors du chargement des caméras: ${err.message}`;
+            }
+        }
+
+        async function initCameraList() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                await loadCameras();
+            } catch (err) {
+                statusElement.textContent = `Erreur d'initialisation: ${err.message}`;
+            }
+        }
+
+        openImageButton.addEventListener('click', () => imageFile.click());
+        imageFile.addEventListener('change', readImageQRCode);
+        scanWebPageButton.addEventListener('click', scanWebPage);
+
+        async function startScanning(deviceId) {
+            try {
+                const constraints = {
+                    video: {
+                        deviceId: { exact: deviceId }
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.play();
+                cameraList.querySelector(`.camera-button[data-device-id="${deviceId}"]`).style.display = 'none';
+                cameraList.querySelector(`.stop-button[data-device-id="${deviceId}"]`).style.display = 'block';
+                statusElement.textContent = 'Caméra active - Placez un QR code devant';
+                scanning = true;
+                scanQRCode();
+            } catch (err) {
+                statusElement.textContent = `Erreur: ${err.message}`;
+            }
+        }
+
+        function stopScanning() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                statusElement.textContent = 'Caméra arrêtée';
+                scanning = false;
+            }
+        }
+
+        function addToHistory(content) {
+            const li = document.createElement('li');
+            li.innerHTML = `${new Date().toLocaleTimeString()} - ${formatResult(content)}`;
+            historyList.insertBefore(li, historyList.firstChild);
+
+            if (historyList.children.length > 10) {
+                historyList.removeChild(historyList.lastChild);
+            }
+        }
+
+        function scanQRCode() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let lastResult = null;
+
+            function scan() {
+                if (!scanning) return;
+
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.height = video.videoHeight;
+                    canvas.width = video.videoWidth;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code) {
+                        if (lastResult !== code.data) {
+                            resultDiv.innerHTML = formatResult(code.data);
+                            lastResult = code.data;
+                            addToHistory(code.data);
+
+                            if (navigator.vibrate) {
+                                navigator.vibrate(200);
+                            }
+                        }
+                    }
+                }
+                requestAnimationFrame(scan);
+            }
+            scan();
+        }
+
+        function readImageQRCode(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        context.drawImage(img, 0, 0);
+
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                        if (code) {
+                            resultDiv.innerHTML = formatResult(code.data);
+                            addToHistory(code.data);
+                        } else {
+                            resultDiv.innerHTML = 'Aucun QR code trouvé';
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function scanWebPage() {
+            const url = urlInput.value;
+            if (!isValidUrl(url)) {
+                statusElement.textContent = 'URL invalide';
+                return;
+            }
+
+            try {
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) {
+                    throw new Error('Erreur de réseau');
+                }
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const images = doc.querySelectorAll('img');
+
+                for (const img of images) {
+                    const imgSrc = img.src;
+                    const imgBlob = await fetch(imgSrc, { mode: 'cors' }).then(r => r.blob());
+                    const imgUrl = URL.createObjectURL(imgBlob);
+
+                    const image = new Image();
+                    image.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        context.drawImage(image, 0, 0);
+
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                        if (code) {
+                            resultDiv.innerHTML = formatResult(code.data);
+                            addToHistory(code.data);
+                        }
+                    };
+                    image.src = imgUrl;
+                }
+
+                statusElement.textContent = 'Scan terminé';
+            } catch (err) {
+                statusElement.textContent = `Erreur: ${err.message}`;
+            }
+        }
+
+        initCameraList();
+        navigator.mediaDevices.addEventListener('devicechange', loadCameras);
+    </script>
+</body>
+
+</html>

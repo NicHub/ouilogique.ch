@@ -1,0 +1,14 @@
+# # caddy validate --config Caddyfile
+# # Démarrer Caddy
+# caddy start
+#
+# # Arrêter Caddy
+# caddy stop
+#
+# # Recharger la configuration
+# caddy reload
+
+192.168.39.97 {
+	root * .
+	file_server
+}
