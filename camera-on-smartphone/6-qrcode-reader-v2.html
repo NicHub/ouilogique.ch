@@ -36,9 +36,6 @@
 
         .container {
             max-width: 800px;
-            /*
-            max-width: 100%;
-            */
             width: 100%;
             text-align: center;
         }
@@ -52,8 +49,10 @@
 
         #video {
             width: 100%;
+            height: auto;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #000;
         }
 
         #result {
@@ -209,7 +208,7 @@
         </div>
 
         <div id="video-container">
-            <video id="video"></video>
+            <video id="video" playsinline muted autoplay></video>
         </div>
 
         <div id="result">The scan result will appear here</div>
@@ -289,11 +288,6 @@
                     });
                 });
 
-                const firstCamera = cameraList.querySelector('.camera-button');
-                if (firstCamera) {
-                    firstCamera.click();
-                }
-
             } catch (err) {
                 statusElement.textContent = `Error loading cameras: ${err.message}`;
             }
@@ -301,7 +295,14 @@
 
         async function initCameraList() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Demander la permission d'abord
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
                 stream.getTracks().forEach(track => track.stop());
                 await loadCameras();
             } catch (err) {
@@ -315,22 +316,49 @@
 
         async function startScanning(deviceId) {
             try {
+                // Arrêter le stream précédent s'il existe
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
                 const constraints = {
                     video: {
-                        deviceId: { exact: deviceId }
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        facingMode: deviceId ? undefined : 'environment',
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 }
                     }
                 };
 
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // Attendre que la vidéo soit prête avant de l'assigner
                 video.srcObject = stream;
-                video.play();
-                cameraList.querySelector(`.camera-button[data-device-id="${deviceId}"]`).style.display = 'none';
-                cameraList.querySelector(`.stop-button[data-device-id="${deviceId}"]`).style.display = 'block';
-                statusElement.textContent = 'Camera active — Place a QR code in front';
+
+                // Promesse pour attendre que la vidéo soit prête
+                await new Promise((resolve, reject) => {
+                    video.onloadedmetadata = () => {
+                        video.play().then(resolve).catch(reject);
+                    };
+                    video.onerror = reject;
+                });
+
+                if (deviceId) {
+                    cameraList.querySelector(`.camera-button[data-device-id="${deviceId}"]`).style.display = 'none';
+                    cameraList.querySelector(`.stop-button[data-device-id="${deviceId}"]`).style.display = 'block';
+                }
+
+                statusElement.textContent = 'Camera active -- Place a QR code in front';
                 scanning = true;
-                scanQRCode();
+
+                // Petit délai pour s'assurer que la vidéo est bien démarrée
+                setTimeout(() => {
+                    scanQRCode();
+                }, 500);
+
             } catch (err) {
                 statusElement.textContent = `Erreur: ${err.message}`;
+                console.error('Camera error:', err);
             }
         }
 
@@ -340,6 +368,7 @@
                 video.srcObject = null;
                 statusElement.textContent = 'Camera stopped';
                 scanning = false;
+                stream = null;
             }
         }
 
@@ -359,26 +388,30 @@
             let lastResult = null;
 
             function scan() {
-                if (!scanning) return;
+                if (!scanning || !video.srcObject) return;
 
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
                     canvas.height = video.videoHeight;
                     canvas.width = video.videoWidth;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    try {
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-                    if (code) {
-                        if (lastResult !== code.data) {
-                            resultDiv.innerHTML = formatResult(code.data);
-                            lastResult = code.data;
-                            addToHistory(code.data);
+                        if (code) {
+                            if (lastResult !== code.data) {
+                                resultDiv.innerHTML = formatResult(code.data);
+                                lastResult = code.data;
+                                addToHistory(code.data);
 
-                            if (navigator.vibrate) {
-                                navigator.vibrate(200);
+                                if (navigator.vibrate) {
+                                    navigator.vibrate(200);
+                                }
                             }
                         }
+                    } catch (err) {
+                        console.error('Scan error:', err);
                     }
                 }
                 requestAnimationFrame(scan);
@@ -481,7 +514,11 @@
             }
         }
 
-        initCameraList();
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            initCameraList();
+        });
+
         navigator.mediaDevices.addEventListener('devicechange', loadCameras);
     </script>
 </body>
